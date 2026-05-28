@@ -1,0 +1,778 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Umob GameHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 32px auto;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .section {
+            margin-top: 20px;
+            padding: 18px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            padding: 10px;
+            width: 95%;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 12px;
+            margin-right: 6px;
+        }
+
+            button:hover {
+                background: #1d4ed8;
+            }
+
+            button:disabled {
+                background: #9ca3af;
+                cursor: not-allowed;
+            }
+
+        .danger {
+            background: #dc2626;
+        }
+
+            .danger:hover {
+                background: #b91c1c;
+            }
+
+        .success {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .muted {
+            color: #666;
+        }
+
+        .info-box {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .score-box {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            font-size: 18px;
+        }
+
+        .score-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .question-card {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid #ddd;
+        }
+
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: #e5e7eb;
+            color: #111827;
+            margin: 8px 0;
+        }
+
+            .option-button:hover {
+                background: #d1d5db;
+            }
+
+        .attempt {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 750px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                margin: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Umob GameHub</h1>
+        <p class="muted">Simple web client for your GBFS quiz game.</p>
+
+        <div class="section">
+            <h2>Account</h2>
+
+            <div class="grid">
+                <div class="info-box">
+                    <h3>Register</h3>
+
+                    <label for="registerUsername">Username</label>
+                    <input id="registerUsername" type="text" placeholder="bita" />
+
+                    <label for="registerEmail">Email</label>
+                    <input id="registerEmail" type="email" placeholder="bita@example.com" />
+
+                    <label for="registerPassword">Password</label>
+                    <input id="registerPassword" type="password" placeholder="password" />
+
+                    <button onclick="registerUser()">Register</button>
+                </div>
+
+                <div class="info-box">
+                    <h3>Login</h3>
+
+                    <label for="loginEmail">Email</label>
+                    <input id="loginEmail" type="email" placeholder="bita@example.com" />
+
+                    <label for="loginPassword">Password</label>
+                    <input id="loginPassword" type="password" placeholder="password" />
+
+                    <button onclick="loginUser()">Login</button>
+                </div>
+            </div>
+
+            <p id="authStatus" class="muted">Not logged in.</p>
+        </div>
+
+        <div class="section">
+            <h2>Game</h2>
+
+            <button id="startButton" onclick="startGame()" disabled>Start Game</button>
+            <button id="attemptsButton" onclick="loadAttempts()" disabled>Show Attempts</button>
+            <button class="danger" onclick="resetScreen()">Reset Screen</button>
+        </div>
+
+        <div id="message"></div>
+
+        <div id="gameSection" class="section hidden">
+            <h2>Current Game</h2>
+
+            <div class="score-box">
+                <div class="score-item">
+                    <strong>Attempt Id:</strong>
+                    <span id="attemptIdText">-</span>
+                </div>
+
+                <div class="score-item">
+                    <strong>Score:</strong>
+                    <span id="scoreText">0</span>
+                </div>
+
+                <div class="score-item">
+                    <strong>Remaining Time:</strong>
+                    <span id="timerText">60</span>s
+                </div>
+            </div>
+
+            <div id="questionContainer"></div>
+        </div>
+
+        <div id="resultSection" class="section hidden">
+            <h2>Result</h2>
+            <p id="resultText"></p>
+            <button onclick="startGame()">Restart Game</button>
+        </div>
+
+        <div id="attemptsSection" class="section hidden">
+            <h2>Attempts</h2>
+            <div id="attemptsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let accessToken = null;
+
+        let currentGame = null;
+        let currentQuestionIndex = 0;
+        let currentScore = 0;
+        let endTime = null;
+        let timerInterval = null;
+        let isGameFinished = false;
+
+        async function registerUser() {
+            const username = document.getElementById("registerUsername").value.trim();
+            const email = document.getElementById("registerEmail").value.trim();
+            const password = document.getElementById("registerPassword").value;
+
+            if (!username || !email || !password) {
+                showMessage("Username, email, and password are required.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/v1/auth/register", {
+                    method: "POST",
+                    headers: getJsonHeaders(false),
+                    body: JSON.stringify({
+                        username: username,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    showMessage("Register failed: " + error, "error");
+                    return;
+                }
+
+                showMessage("Registered successfully. Now login.", "success");
+            } catch (error) {
+                showMessage("Register error: " + error.message, "error");
+            }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+
+            if (!email || !password) {
+                showMessage("Email and password are required.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/v1/auth/login", {
+                    method: "POST",
+                    headers: getJsonHeaders(false),
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    showMessage("Login failed: " + error, "error");
+                    return;
+                }
+
+                const result = await response.json();
+
+                accessToken =
+                    result.accessToken ||
+                    result.AccessToken ||
+                    result.token ||
+                    result.Token;
+
+                currentUserId =
+                    Number(result.userId || result.UserId || result.id || result.Id) ||
+                    readUserIdFromToken(accessToken);
+
+                if (!currentUserId) {
+                    showMessage("Login succeeded, but UserId was not found. Return userId from login response or include it in JWT claims.", "error");
+                    return;
+                }
+
+                document.getElementById("authStatus").innerText =
+                    `Logged in. UserId: ${currentUserId}`;
+
+                document.getElementById("startButton").disabled = false;
+                document.getElementById("attemptsButton").disabled = false;
+
+                showMessage("Login successful.", "success");
+            } catch (error) {
+                showMessage("Login error: " + error.message, "error");
+            }
+        }
+
+        function logoutUser() {
+            currentUserId = null;
+            accessToken = null;
+
+            document.getElementById("authStatus").innerText = "Not logged in.";
+            document.getElementById("startButton").disabled = true;
+            document.getElementById("attemptsButton").disabled = true;
+
+            resetScreen();
+            showMessage("Logged out.", "muted");
+        }
+
+        async function startGame() {
+            if (!currentUserId) {
+                showMessage("Please login first.", "error");
+                return;
+            }
+
+            resetGameOnly();
+
+            showMessage("Starting game...", "muted");
+
+            try {
+                const response = await fetch("/api/v1/games/start", {
+                    method: "POST",
+                    headers: getJsonHeaders(true),
+                    body: JSON.stringify({
+                        userId: currentUserId
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    showMessage("Could not start game: " + error, "error");
+                    return;
+                }
+
+                const rawGame = await response.json();
+                currentGame = normalizeStartGameResponse(rawGame);
+
+                if (!currentGame.questions || currentGame.questions.length === 0) {
+                    showMessage("No questions returned from API.", "error");
+                    return;
+                }
+
+                currentQuestionIndex = 0;
+                currentScore = currentGame.score;
+                isGameFinished = false;
+                endTime = new Date(Date.now() + currentGame.durationSeconds * 1000);
+
+                document.getElementById("gameSection").classList.remove("hidden");
+                document.getElementById("resultSection").classList.add("hidden");
+                document.getElementById("attemptIdText").innerText = currentGame.attemptId;
+                document.getElementById("scoreText").innerText = currentScore;
+
+                showMessage("Game started. Answer as many questions as possible in 1 minute.", "success");
+
+                startTimer();
+                renderCurrentQuestion();
+
+            } catch (error) {
+                showMessage("Unexpected error: " + error.message, "error");
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                const remainingSeconds = Math.max(0, Math.floor((endTime - new Date()) / 1000));
+                document.getElementById("timerText").innerText = remainingSeconds;
+
+                if (remainingSeconds <= 0) {
+                    finishGame();
+                }
+            }, 500);
+        }
+
+        function renderCurrentQuestion() {
+            if (!currentGame || isGameFinished) {
+                return;
+            }
+
+            if (currentQuestionIndex >= currentGame.questions.length) {
+                finishGame();
+                return;
+            }
+
+            const question = currentGame.questions[currentQuestionIndex];
+            const container = document.getElementById("questionContainer");
+
+            let html = `
+                <div class="question-card">
+                    <p class="muted">
+                        Question ${currentQuestionIndex + 1} of ${currentGame.questions.length}
+                    </p>
+
+                    <h3>${escapeHtml(question.questionText)}</h3>
+            `;
+
+            for (const option of question.options.sort((a, b) => a.optionKey.localeCompare(b.optionKey))) {
+                html += `
+                    <button class="option-button"
+                            onclick="submitAnswer(${question.questionId}, ${option.optionId})">
+                        ${escapeHtml(option.optionKey)} - ${escapeHtml(option.optionValue)}
+                    </button>
+                `;
+            }
+
+            html += `</div>`;
+
+            container.innerHTML = html;
+        }
+
+        async function submitAnswer(questionId, selectedOptionId) {
+            if (!currentGame || isGameFinished) {
+                return;
+            }
+
+            const remainingSeconds = Math.max(0, Math.floor((endTime - new Date()) / 1000));
+
+            if (remainingSeconds <= 0) {
+                finishGame();
+                return;
+            }
+
+            disableOptionButtons(true);
+
+            try {
+                const response = await postAnswer(
+                    currentGame.attemptId,
+                    questionId,
+                    selectedOptionId);
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    showMessage("Could not submit answer: " + error, "error");
+                    disableOptionButtons(false);
+                    return;
+                }
+
+                const rawResult = await response.json();
+                const result = normalizeAnswerResponse(rawResult);
+
+                currentScore = result.score;
+                document.getElementById("scoreText").innerText = currentScore;
+
+                showMessage(result.isCorrect ? "Correct! +50 points" : "Wrong! -20 points", result.isCorrect ? "success" : "error");
+
+                currentQuestionIndex++;
+
+                setTimeout(() => {
+                    renderCurrentQuestion();
+                }, 400);
+
+            } catch (error) {
+                showMessage("Unexpected error: " + error.message, "error");
+                disableOptionButtons(false);
+            }
+        }
+
+        async function postAnswer(attemptId, questionId, selectedOptionId) {
+            // Main simple route: POST /api/v1/games/answers
+            // Body includes attemptId, questionId, selectedOptionId.
+            let response = await fetch("/api/v1/games/answer", {
+                method: "POST",
+                headers: getJsonHeaders(true),
+                body: JSON.stringify({
+                    attemptId: attemptId,
+                    questionId: questionId,
+                    selectedOptionId: selectedOptionId,
+                    UserId: currentUserId
+                })
+            });
+
+            // Fallback if your backend uses REST route:
+            // POST /api/v1/games/{attemptId}/answers
+            if (response.status === 404) {
+                response = await fetch(`/api/v1/games/${attemptId}/answers`, {
+                    method: "POST",
+                    headers: getJsonHeaders(true),
+                    body: JSON.stringify({
+                        questionId: questionId,
+                        selectedOptionId: selectedOptionId
+                    })
+                });
+            }
+
+            return response;
+        }
+
+        function finishGame() {
+            if (isGameFinished) {
+                return;
+            }
+
+            isGameFinished = true;
+            clearInterval(timerInterval);
+
+            document.getElementById("timerText").innerText = "0";
+            document.getElementById("questionContainer").innerHTML = "";
+            document.getElementById("resultSection").classList.remove("hidden");
+
+            const isWon = currentScore > 0;
+
+            document.getElementById("resultText").innerHTML = `
+                Final score: <strong>${currentScore}</strong><br/>
+                ${isWon ? "<span class='success'>You won!</span>" : "<span class='error'>You lost!</span>"}
+            `;
+
+            showMessage("Game finished.", "muted");
+        }
+
+        async function loadAttempts() {
+            if (!currentUserId) {
+                showMessage("Please login first.", "error");
+                return;
+            }
+
+            showMessage("Loading attempts...", "muted");
+
+            try {
+                const response = await fetch(`/api/v1/games/attempts?userId=${currentUserId}`, {
+                    method: "GET",
+                    headers: accessToken ? { "Authorization": `Bearer ${accessToken}` } : {}
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    showMessage("Could not load attempts: " + error, "error");
+                    return;
+                }
+
+                const rawAttempts = await response.json();
+                const attempts = rawAttempts.map(normalizeAttemptResponse);
+
+                const section = document.getElementById("attemptsSection");
+                const container = document.getElementById("attemptsContainer");
+
+                section.classList.remove("hidden");
+
+                if (!attempts || attempts.length === 0) {
+                    container.innerHTML = "<p>No attempts found.</p>";
+                    showMessage("No attempts found.", "muted");
+                    return;
+                }
+
+                let html = "";
+
+                for (const attempt of attempts) {
+                    const isWonText =
+                        attempt.isWon === null || attempt.isWon === undefined
+                            ? "-"
+                            : attempt.isWon;
+
+                    html += `
+                        <div class="attempt">
+                            <strong>Attempt Id:</strong> ${attempt.attemptId}<br/>
+                            <strong>Score:</strong> ${attempt.score}<br/>
+                            <strong>Is Won:</strong> ${isWonText}<br/>
+                            <strong>Started On:</strong> ${formatDate(attempt.startedOn)}<br/>
+                            <strong>Ended On:</strong> ${attempt.endedOn ? formatDate(attempt.endedOn) : "-"}<br/>
+                            <strong>Duration:</strong> ${attempt.durationSeconds} seconds
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+                showMessage("Attempts loaded.", "success");
+
+            } catch (error) {
+                showMessage("Unexpected error: " + error.message, "error");
+            }
+        }
+
+        function resetScreen() {
+            resetGameOnly();
+
+            document.getElementById("attemptsSection").classList.add("hidden");
+            document.getElementById("attemptsContainer").innerHTML = "";
+            document.getElementById("message").innerHTML = "";
+        }
+
+        function resetGameOnly() {
+            currentGame = null;
+            currentQuestionIndex = 0;
+            currentScore = 0;
+            endTime = null;
+            isGameFinished = false;
+
+            clearInterval(timerInterval);
+
+            document.getElementById("gameSection").classList.add("hidden");
+            document.getElementById("resultSection").classList.add("hidden");
+
+            document.getElementById("questionContainer").innerHTML = "";
+            document.getElementById("scoreText").innerText = "0";
+            document.getElementById("timerText").innerText = "60";
+            document.getElementById("attemptIdText").innerText = "-";
+        }
+
+        function getJsonHeaders(includeAuth) {
+            const headers = {
+                "Content-Type": "application/json"
+            };
+
+            if (includeAuth && accessToken) {
+                headers["Authorization"] = `Bearer ${accessToken}`;
+            }
+
+            return headers;
+        }
+
+        function disableOptionButtons(disabled) {
+            const buttons = document.querySelectorAll(".option-button");
+
+            for (const button of buttons) {
+                button.disabled = disabled;
+            }
+        }
+
+        function showMessage(message, type) {
+            const div = document.getElementById("message");
+
+            div.innerHTML = `
+                <div class="section ${type}">
+                    ${escapeHtml(message)}
+                </div>
+            `;
+        }
+
+        function readUserIdFromToken(token) {
+            if (!token) {
+                return null;
+            }
+
+            try {
+                const payloadBase64 = token.split(".")[1];
+
+                const payloadJson = atob(
+                    payloadBase64.replace(/-/g, "+").replace(/_/g, "/")
+                );
+
+                const payload = JSON.parse(payloadJson);
+
+                return Number(
+                    payload.nameid ||
+                    payload.sub ||
+                    payload.userId ||
+                    payload.id ||
+                    payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
+                    payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
+                );
+            } catch {
+                return null;
+            }
+        }
+
+        function normalizeStartGameResponse(raw) {
+            const questionsRaw = raw.questions || raw.Questions || [];
+
+            return {
+                attemptId: raw.attemptId || raw.AttemptId,
+                score: raw.score ?? raw.Score ?? 0,
+                durationSeconds: raw.durationSeconds || raw.DurationSeconds || 60,
+                startedOn: raw.startedOn || raw.StartedOn,
+                questions: questionsRaw.map(q => {
+                    const optionsRaw = q.options || q.Options || [];
+
+                    return {
+                        questionId: q.questionId || q.QuestionId,
+                        questionTemplateId: q.questionTemplateId || q.QuestionTemplateId,
+                        questionText: q.questionText || q.QuestionText,
+                        options: optionsRaw.map(o => ({
+                            optionId: o.optionId || o.OptionId,
+                            optionKey: o.optionKey || o.OptionKey,
+                            optionValue: o.optionValue || o.OptionValue
+                        }))
+                    };
+                })
+            };
+        }
+
+        function normalizeAnswerResponse(raw) {
+            return {
+                attemptId: raw.attemptId || raw.AttemptId,
+                questionId: raw.questionId || raw.QuestionId,
+                selectedOptionId: raw.selectedOptionId || raw.SelectedOptionId,
+                isCorrect: raw.isCorrect ?? raw.IsCorrect,
+                score: raw.score ?? raw.Score ?? 0
+            };
+        }
+
+        function normalizeAttemptResponse(raw) {
+            return {
+                attemptId: raw.attemptId || raw.AttemptId,
+                score: raw.score ?? raw.Score ?? 0,
+                isWon: raw.isWon ?? raw.IsWon ?? null,
+                startedOn: raw.startedOn || raw.StartedOn,
+                endedOn: raw.endedOn || raw.EndedOn,
+                durationSeconds: raw.durationSeconds || raw.DurationSeconds || 60
+            };
+        }
+
+        function escapeHtml(value) {
+            if (value === null || value === undefined) {
+                return "";
+            }
+
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return "-";
+            }
+
+            return new Date(value).toLocaleString();
+        }
+    </script>
+</body>
+</html>

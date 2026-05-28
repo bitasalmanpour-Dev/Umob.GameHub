@@ -1,0 +1,6 @@
+@Umob.GameHub_HostAddress = http://localhost:5194
+
+GET {{Umob.GameHub_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
