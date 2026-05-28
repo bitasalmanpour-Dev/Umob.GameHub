@@ -311,7 +311,11 @@ If SQL Server uses username and password authentication, use a connection string
 }
 ```
 
-### 4. Configure JWT Settings
+### 4. Create and Prepare the Database
+
+To create and prepare the database, run the `script.sql` file.
+
+### 5. Configure JWT Settings
 
 Add JWT settings to the API configuration file.
 
@@ -331,7 +335,7 @@ Example:
 For production, secrets should not be stored directly in `appsettings.json`. They should be stored in environment variables, user secrets, or a secure secret manager.
 
 
-### 5. Run the API
+### 6. Run the API
 
 ```bash
 dotnet run --project src/Presentation/Umob.GameHub
